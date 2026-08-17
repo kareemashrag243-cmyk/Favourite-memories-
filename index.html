@@ -167,13 +167,13 @@ footer{text-align:center;padding:60px 20px;border-top:1px solid var(--line);colo
 
 <button class="music" id="music" aria-label="تشغيل الموسيقى"><span></span></button>
 <audio id="audio" loop>
-  <source src="Albumaty.Com_twwlyt_wla_aash_wla_kan.mp3" type="audio/mpeg">
+  <source src="song.mp3" type="audio/mpeg">
 </audio>
 
 <header class="hero">
   <div class="hero-content reveal">
     <div class="kicker">A story worth remembering</div>
-    <h1>Omar <em>&</em> Sara</h1>
+    <h1 id="couple-names">Omar <em>&</em> Sara</h1>
     <div class="hero-date">OUR STORY · 2026</div>
     <div class="scroll">SCROLL TO DISCOVER<i></i></div>
   </div>
@@ -228,10 +228,10 @@ footer{text-align:center;padding:60px 20px;border-top:1px solid var(--line);colo
       <h2 class="title">Little moments.<br>Big feelings.</h2>
     </div>
     <div class="grid">
-      <figure class="card reveal"><img src="photo.jpg1" alt="Our memory"><figcaption>That smile.</figcaption></figure>
-      <figure class="card reveal"><img src="photo.jpg2" alt="Our memory"><figcaption>Just us.</figcaption></figure>
-      <figure class="card reveal"><img src="photo.jpg3" alt="Our memory"><figcaption>One of my favorites.</figcaption></figure>
-      <figure class="card reveal"><img src="photo.jpg4" alt="Our memory"><figcaption>Keep this moment.</figcaption></figure>
+      <figure class="card reveal"><img id="user-photo1" src="photo1.jpg" alt="Our memory"><figcaption>That smile.</figcaption></figure>
+      <figure class="card reveal"><img src="photo2.jpg" alt="Our memory"><figcaption>Just us.</figcaption></figure>
+      <figure class="card reveal"><img src="photo3.jpg" alt="Our memory"><figcaption>One of my favorites.</figcaption></figure>
+      <figure class="card reveal"><img src="photo4.jpg" alt="Our memory"><figcaption>Keep this moment.</figcaption></figure>
     </div>
   </div>
 </section>
@@ -257,7 +257,7 @@ footer{text-align:center;padding:60px 20px;border-top:1px solid var(--line);colo
     </div>
     <div class="video-box reveal">
       <video controls playsinline poster="video-cover.jpg">
-        <source src="VID-20260814-WA0054.mp4" type="video/mp4">
+        <source src="our-video.mp4" type="video/mp4">
         Your browser does not support video.
       </video>
     </div>
@@ -268,8 +268,8 @@ footer{text-align:center;padding:60px 20px;border-top:1px solid var(--line);colo
   <div class="wrap reveal">
     <div class="kicker">A little note</div>
     <div class="letter-box">
-      <div class="letter-text">“If I could keep one thing from every day, it would be the moments I spent with you.”</div>
-      <div class="signature">With all my heart · Omar</div>
+      <div class="letter-text" id="user-note">“If I could keep one thing from every day, it would be the moments I spent with you.”</div>
+      <div class="signature" id="user-signature">With all my heart</div>
     </div>
   </div>
 </section>
@@ -282,7 +282,7 @@ footer{text-align:center;padding:60px 20px;border-top:1px solid var(--line);colo
   </div>
 </section>
 
-<footer>MADE WITH LOVE · OMAR & SARA · 2026</footer>
+<footer id="footer-text">MADE WITH LOVE · OMAR & SARA · 2026</footer>
 
 <script>
 const intro=document.getElementById('intro');
@@ -314,7 +314,7 @@ const observer=new IntersectionObserver(entries=>{
 },{threshold:.12});
 document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
 
-/* العد التصاعدي: احسبوا مدة علاقتكم من التاريخ ده */
+/* العد التصاعدي */
 const startDate=new Date("2024-02-14T00:00:00");
 function countUp(){
   const diff=Math.max(0,new Date()-startDate);
@@ -328,6 +328,47 @@ function countUp(){
   document.getElementById('seconds').textContent=String(s).padStart(2,'0');
 }
 countUp();setInterval(countUp,1000);
+</script>
+
+<!-- ربط Supabase وقراءة بيانات الكارت تلقائياً -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const urlParams = new URLSearchParams(window.location.search);
+  const cardId = urlParams.get('card');
+
+  if (cardId) {
+    const SUPABASE_URL = 'https://rzyncxxjblnzngndjzie.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_iPEdZoG1LE2AVzfi0FkjaA_PHxhn5Qt';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    async function loadCardData() {
+      const { data, error } = await supabaseClient
+        .from('cards')
+        .select('*')
+        .eq('card_id', cardId)
+        .single();
+
+      if (data) {
+        // 1. تحديث الأسماء
+        if (data.names) {
+          document.getElementById('couple-names').innerHTML = data.names.replace(' و ', ' <em>&</em> ').replace('&', '<em>&</em>');
+          document.getElementById('footer-text').innerText = `MADE WITH LOVE · ${data.names.toUpperCase()} · 2026`;
+        }
+        
+        // 2. تحديث الرسالة
+        if (data.note) {
+          document.getElementById('user-note').innerText = `“${data.note}”`;
+        }
+
+        // 3. تحديث الصورة الأولى
+        if (data.photo1) {
+          document.getElementById('user-photo1').src = data.photo1;
+        }
+      }
+    }
+
+    loadCardData();
+  }
 </script>
 </body>
 </html>
